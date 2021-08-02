@@ -15,4 +15,11 @@ Cryptor depends on `cryptography`, `pyfiglet` to run as intended.<br>
 `pip install -r requirements.txt`
 
 # Usage
-`python3 cryptor.py /home/user/file_folder/file`
+For help <br>
+`python3 cryptor.py -h` 
+
+<br>To perform action on single file <br>
+`python3 cryptor.py -d /home/user/file_folder/file` <br>
+
+<br>To perform action on directory <br>
+`python3 cryptor.py -r /home/user/file_folder` <br>
