@@ -243,8 +243,6 @@ if platform.system() == "Linux":
 options:
         e - encrypt file
         d - decrypt file
-        ez - encrypt & zip file (gzip)
-        dz - decrypt & unzip file (gzip)
         """)
 
         encrypt_or_decrypt = input("command:")
@@ -266,26 +264,6 @@ options:
             except FileNotFoundError:
                 print(
                     "Oops error: failed decrypting file.\nCheck if directory name is correct or if file exits.")
-                exit()
-
-        elif encrypt_or_decrypt == "ez":
-            try:
-                selectFileToEncrypt()
-                compress_file()
-
-            except FileNotFoundError:
-                print(
-                    "Oops error: failed encrypting file.\nCheck if directory name is correct or if file exits.")
-                exit()
-
-        elif encrypt_or_decrypt == "dz":
-            try:
-                decompress_file()
-                selectFileToDecrypt()
-
-            except FileNotFoundError:
-                print(
-                    "Oops error: failed encrypting file.\nCheck if directory name is correct or if file exits.")
                 exit()
 
         else:
