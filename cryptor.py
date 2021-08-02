@@ -14,32 +14,47 @@
 #!/usr/bin/python3
 
 import os
+from os import stat
+import subprocess
 import pyfiglet
 import platform
 import getpass
 import hashlib
 from cryptography.fernet import Fernet
 import argparse
+import zipfile
+from compressor import compress_file, decompress_file
 
 user = getpass.getuser()
 newline = "\n"
-linebreak1 = "_" * 40
-linebreak2 = "-" * 40
+linebreak1 = "_" * 44
+linebreak2 = "-" * 44
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('d', help='location of file (full path)')
+parser.add_argument('-d', help='location of file (full path)', nargs='?')
+parser.add_argument('-r', help='recursive on directory', nargs='?')
 
 args = parser.parse_args()
 
-file_location = args.d
-file_name = args.d.split("/")[-1]
+
+if args.d != None:
+    file_location = args.d
+    directory_name = file_location.split("/")[-1]
+    file_name = args.d.split("/")[-1]
+elif args.r != None:
+    file_location = args.r
+    directory_name = file_location.split("/")[-1]
+else:
+    print("insufficient arguments! type pycrypt.py -h to know more.")
+    exit()
+
 
 
 def banner():
     print(linebreak1)
-    print(pyfiglet.figlet_format("Cryptor"))
-    print("----Simple file encrypt/decrypt tool----")
+    print(pyfiglet.figlet_format("  Cryptor"))
+    print("  ----Simple file encrypt/decrypt tool----")
     print(linebreak1)
 
 
@@ -51,58 +66,106 @@ if platform.system() == "Linux":
 
     def selectFileToEncrypt():
 
-        # index_of_file = int(input("Enter file index: "))
-        with open(file_location, "rb") as scope_file:
-            data = scope_file.read()
-        # print(data)
+        if args.d != None:
 
-        password = getpass.getpass(prompt="pick a password:")
+            # index_of_file = int(input("Enter file index: "))
+            with open(file_location, "rb") as scope_file:
+                data = scope_file.read()
+            # print(data)
 
-        # store password hash
-        with open(f".{file_name}.auth", "w") as authFile:
-            authFile.write(password_hash(password))
+            password = getpass.getpass(prompt="pick a password:")
 
-        # store key used for encryption and decryption
-        with open(f".{file_name}.sign", "wb") as fileKey:
-            fileKey.write(Fernet.generate_key())
-            fileKey.write(b"\n")
+            # store password hash
+            with open(f".{file_name}.auth", "w") as authFile:
+                authFile.write(password_hash(password))
 
-        # read key to encrypt file
-        with open(f".{file_name}.sign", "rb") as fileKey:
-            key = fileKey.read()
+            # store key used for encryption and decryption
+            with open(f".{file_name}.sign", "wb") as fileKey:
+                fileKey.write(Fernet.generate_key())
+                fileKey.write(b"\n")
 
-        f = Fernet(key)
+            # read key to encrypt file
+            with open(f".{file_name}.sign", "rb") as fileKey:
+                key = fileKey.read()
 
-        # store encrypted data
-        try:
-            os.mkdir(f"/home/{user}/.cryptor")
-        except FileExistsError:
-            pass
+            f = Fernet(key)
 
-        encrypted_data = f.encrypt(data)
+            # store encrypted data
+            try:
+                os.mkdir(f"/home/{user}/.cryptor")
+            except FileExistsError:
+                pass
 
-        # overwrite content in file with encrypted data
-        with open(file_location, "wb") as scope_file:
-            scope_file.write(encrypted_data)
+            encrypted_data = f.encrypt(data)
 
-        crnt_dir = os.getcwd()
+            # overwrite content in file with encrypted data
+            with open(file_location, "wb") as scope_file:
+                scope_file.write(encrypted_data)
 
-        # move key and hash file
-        os.rename(f"{crnt_dir}/.{file_name}.sign",
-                  f"/home/{user}/.cryptor/.{file_name}.sign")
-        os.rename(f"{crnt_dir}/.{file_name}.auth",
-                  f"/home/{user}/.cryptor/.{file_name}.auth")
+            crnt_dir = os.getcwd()
+
+            # move key and hash file
+            #os.chmod(f"/home/{user}/.cryptor", int("0444"))
+            subprocess.call(['chmod', '-R', '700', f"/home/{user}/.cryptor"])
+            os.rename(f"{crnt_dir}/.{file_name}.sign",
+                        f"/home/{user}/.cryptor/.{file_name}.sign")
+            os.rename(f"{crnt_dir}/.{file_name}.auth",
+                        f"/home/{user}/.cryptor/.{file_name}.auth")
+        
+        elif args.r != None:
+
+            password = getpass.getpass(prompt="pick a password:")
+
+            # store password hash
+            with open(f"/home/{user}/.cryptor/.{directory_name}.auth", "w") as authFile:
+                authFile.write(password_hash(password))
+
+            os.chdir(file_location)
+
+            # index_of_file = int(input("Enter file index: "))
+            for file in os.listdir(file_location):
+                if not file.startswith("."):
+                    with open(file, "rb") as scope_file:
+                        data = scope_file.read()
+                    # print(data)
+
+                    # store key used for encryption and decryption
+                    with open(f".{file}.sign", "wb") as fileKey:
+                        fileKey.write(Fernet.generate_key())
+                        fileKey.write(b"\n")
+
+                    # read key to encrypt file
+                    with open(f".{file}.sign", "rb") as fileKey:
+                        key = fileKey.read()
+
+                    f = Fernet(key)
+
+                    # store encrypted data
+                    try:
+                        os.mkdir(f"/home/{user}/.cryptor")
+                    except FileExistsError:
+                        pass
+
+                    encrypted_data = f.encrypt(data)
+
+                    # overwrite content in file with encrypted data
+                    with open(file, "wb") as scope_file:
+                        scope_file.write(encrypted_data)
+
+                    crnt_dir = os.getcwd()
+
+                    # move key and hash file
+                    os.rename(f"{crnt_dir}/.{file}.sign",
+                                f"/home/{user}/.cryptor/.{file}.sign")
+                
 
         # status
         print("file encryption, done..")
 
     def selectFileToDecrypt():
 
-        with open(file_location, "rb") as encrypted_file:
-            encrypted_data = encrypted_file.read()
-
         # read password hash
-        with open(f"/home/{user}/.cryptor/.{file_name}.auth", "rb") as stored_hash:
+        with open(f"/home/{user}/.cryptor/.{directory_name}.auth", "rb") as stored_hash:
             hash_value = stored_hash.read()
 
         tries = 0
@@ -120,22 +183,53 @@ if platform.system() == "Linux":
                 exit()
 
             elif password == hash_value.decode('utf-8'):
-                # read stored key
-                with open(f"/home/{user}/.cryptor/.{file_name}.sign", "rb") as fileKey:
-                    key = fileKey.read()
 
-                f = Fernet(key.strip())
+                if args.d != None:
 
-                # stored decrypted data
-                decrypted_data = f.decrypt(encrypted_data)
+                    with open(file_location, "rb") as encrypted_file:
+                        encrypted_data = encrypted_file.read()
 
-                # overwrite encrypted data with decrypted data
-                with open(file_location, "wb") as encrypted_file:
-                    encrypted_file.write(decrypted_data)
+                    # read stored key
+                    with open(f"/home/{user}/.cryptor/.{file_name}.sign", "rb") as fileKey:
+                        key = fileKey.read()
 
-                # remove key and hash file after decryption to clean up space
-                os.remove(f"/home/{user}/.cryptor/.{file_name}.sign")
-                os.remove(f"/home/{user}/.cryptor/.{file_name}.auth")
+                    f = Fernet(key.strip())
+
+                    # stored decrypted data
+                    decrypted_data = f.decrypt(encrypted_data)
+
+                    # overwrite encrypted data with decrypted data
+                    with open(file_location, "wb") as encrypted_file:
+                        encrypted_file.write(decrypted_data)
+
+                    # remove key and hash file after decryption to clean up space
+                    os.remove(f"/home/{user}/.cryptor/.{file_name}.sign")
+                    os.remove(f"/home/{user}/.cryptor/.{file_name}.auth")
+                
+                elif args.r != None:
+
+                    os.chdir(file_location)
+
+                    for file in os.listdir(file_location):
+
+                        with open(file, "rb") as encrypted_file:
+                            encrypted_data = encrypted_file.read()
+                
+                    # read stored key
+                        with open(f"/home/{user}/.cryptor/.{file}.sign", "rb") as fileKey:
+                            key = fileKey.read()
+
+                        f = Fernet(key.strip())
+
+                        # stored decrypted data
+                        decrypted_data = f.decrypt(encrypted_data)
+
+                        # overwrite encrypted data with decrypted data
+                        with open(file, "wb") as encrypted_file:
+                            encrypted_file.write(decrypted_data)
+
+                        # remove key and hash file after decryption to clean up space
+                        os.remove(f"/home/{user}/.cryptor/.{file}.sign")
 
                 # status
                 print("file decryption, done..")
@@ -145,7 +239,15 @@ if platform.system() == "Linux":
 
         banner()
 
-        encrypt_or_decrypt = input("Encrypt or Decrypt (e/d): ")
+        print("""
+options:
+        e - encrypt file
+        d - decrypt file
+        ez - encrypt & zip file (gzip)
+        dz - decrypt & unzip file (gzip)
+        """)
+
+        encrypt_or_decrypt = input("command:")
 
         if encrypt_or_decrypt == "e":
             try:
@@ -154,15 +256,36 @@ if platform.system() == "Linux":
             except FileNotFoundError:
                 print(
                     "Oops error: failed encrypting file.\nCheck if directory name is correct or if file exits.")
-                exit()
+                exit() 
 
         elif encrypt_or_decrypt == "d":
+            
             try:
                 selectFileToDecrypt()
 
             except FileNotFoundError:
                 print(
                     "Oops error: failed decrypting file.\nCheck if directory name is correct or if file exits.")
+                exit()
+
+        elif encrypt_or_decrypt == "ez":
+            try:
+                selectFileToEncrypt()
+                compress_file()
+
+            except FileNotFoundError:
+                print(
+                    "Oops error: failed encrypting file.\nCheck if directory name is correct or if file exits.")
+                exit()
+
+        elif encrypt_or_decrypt == "dz":
+            try:
+                decompress_file()
+                selectFileToDecrypt()
+
+            except FileNotFoundError:
+                print(
+                    "Oops error: failed encrypting file.\nCheck if directory name is correct or if file exits.")
                 exit()
 
         else:
@@ -179,3 +302,5 @@ if platform.system() == "Linux":
 
 else:
     print("Sorry, Cryptor for Windows and Mac currently not available.")
+
+
