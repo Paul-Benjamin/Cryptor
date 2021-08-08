@@ -23,7 +23,6 @@ import hashlib
 from cryptography.fernet import Fernet
 import argparse
 import zipfile
-from compressor import compress_file, decompress_file
 
 user = getpass.getuser()
 newline = "\n"
