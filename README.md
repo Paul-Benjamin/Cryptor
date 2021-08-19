@@ -1,7 +1,7 @@
 # Cryptor
 ## About 
 
-**Cryptor** is a simple command line python tool for file protection.
+**Cryptor** is a simple command line python tool for protecting files using encryption and password in linux/unix* systems.
 
 # Installation
 `https://github.com/Paul-Benjamin/Cryptor.git`
