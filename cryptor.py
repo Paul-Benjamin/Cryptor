@@ -45,7 +45,7 @@ elif args.r != None:
     file_location = args.r
     directory_name = file_location.split("/")[-1]
 else:
-    print("insufficient arguments! type pycrypt.py -h to know more.")
+    print("insufficient arguments! type cryptor.py -h to know more.")
     exit()
 
 
@@ -67,10 +67,9 @@ if platform.system() == "Linux":
 
         if args.d != None:
 
-            # index_of_file = int(input("Enter file index: "))
+            # read data
             with open(file_location, "rb") as scope_file:
                 data = scope_file.read()
-            # print(data)
 
             password = getpass.getpass(prompt="pick a password:")
 
@@ -104,7 +103,6 @@ if platform.system() == "Linux":
             crnt_dir = os.getcwd()
 
             # move key and hash file
-            #os.chmod(f"/home/{user}/.cryptor", int("0444"))
             subprocess.call(['chmod', '-R', '700', f"/home/{user}/.cryptor"])
             os.rename(f"{crnt_dir}/.{file_name}.sign",
                         f"/home/{user}/.cryptor/.{file_name}.sign")
@@ -121,7 +119,6 @@ if platform.system() == "Linux":
 
             os.chdir(file_location)
 
-            # index_of_file = int(input("Enter file index: "))
             for file in os.listdir(file_location):
                 if not file.startswith("."):
                     with open(file, "rb") as scope_file:
