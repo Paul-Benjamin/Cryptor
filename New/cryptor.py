@@ -16,6 +16,7 @@
 # is the key used to encrypt/decrypt file.                                 #
 #                                                                          #
 ############################################################################
+
 #!/usr/bin/python3
 
 import os
