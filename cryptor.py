@@ -31,16 +31,16 @@ linebreak2 = "-" * 44
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-d', help='location of file (full path)', nargs='?')
+parser.add_argument('-f', help='location of file (full path)', nargs='?')
 parser.add_argument('-r', help='recursive on directory', nargs='?')
 
 args = parser.parse_args()
 
 
-if args.d != None:
-    file_location = args.d
+if args.f != None:
+    file_location = args.f
     directory_name = file_location.split("/")[-1]
-    file_name = args.d.split("/")[-1]
+    file_name = args.f.split("/")[-1]
 elif args.r != None:
     file_location = args.r
     directory_name = file_location.split("/")[-1]
@@ -65,7 +65,7 @@ if platform.system() == "Linux":
 
     def selectFileToEncrypt():
 
-        if args.d != None:
+        if args.f != None:
 
             # read data
             with open(file_location, "rb") as scope_file:
@@ -180,7 +180,7 @@ if platform.system() == "Linux":
 
             elif password == hash_value.decode('utf-8'):
 
-                if args.d != None:
+                if args.f != None:
 
                     with open(file_location, "rb") as encrypted_file:
                         encrypted_data = encrypted_file.read()
