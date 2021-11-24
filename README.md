@@ -19,7 +19,7 @@ For help <br>
 `python3 cryptor.py -h` 
 
 <br>To perform action on single file <br>
-`python3 cryptor.py -d /home/user/file_folder/file` <br>
+`python3 cryptor.py -f /home/user/file_folder/file` <br>
 
 <br>To perform action on directory <br>
 `python3 cryptor.py -r /home/user/file_folder` <br>
